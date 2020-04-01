@@ -1,3 +1,5 @@
+[![go.dev Reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/aaronvb/logrequest) [![CircleCI](https://img.shields.io/circleci/build/github/aaronvb/logrequest)](https://circleci.com/gh/aaronvb/logrequest)
+
 # aaronvb/logrequest
 Package `aaronvb/logrequest` is a Go middleware log output inspired by the Ruby on Rails log output for requests. Example output:
 
