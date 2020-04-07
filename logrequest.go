@@ -22,8 +22,8 @@ type statusWriter struct {
 
 // ToLogger will print the Started and Completed request info to the passed logger
 func (lr LogRequest) ToLogger(logger *log.Logger) {
-	sw, completedDuration := lr.parseRequest()
 	logger.Printf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
+	sw, completedDuration := lr.parseRequest()
 	logger.Printf("Completed %d in %s", sw.statusCode, completedDuration)
 }
 
