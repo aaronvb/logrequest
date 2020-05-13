@@ -15,6 +15,34 @@ The output can directly sent to `log.Logger` or to a map[string]string with the 
 go get -u github.com/aaronvb/logrequest
 ```
 
+## Options
+There are two optional options you can pass to the `LogRequest` struct:
+
+`NewLine` (integer) - This will append N lines at the end of the log output. Note: This only works with logger output.
+
+Example:
+```go
+lr := logrequest.LogRequest{Request: r, Writer: w, Handler: next, NewLine: 2}
+```
+```
+Started GET "/" 127.0.0.1:12345 HTTP/1.1
+Completed 200 in 3.7455ms
+
+
+Started GET "/home" 127.0.0.1:12345 HTTP/1.1
+Completed 200 in 1.891ms
+```
+
+`Timestamp` (boolean) - This will add a timestamp at the beginning of the request.
+
+Example:
+```go
+lr := logrequest.LogRequest{Request: r, Writer: w, Handler: next, Timestamp: true}
+```
+```
+Started GET "/home" 1.1.1.1:1234 HTTP/1.1 at 2020-05-13 02:25:33
+```
+
 ## Middleware Example (using [gorilla/mux](https://github.com/gorilla/mux))
 ```go
 package main

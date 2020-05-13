@@ -10,9 +10,11 @@ import (
 // LogRequest struct
 // Pass values from middleware to this struct
 type LogRequest struct {
-	Writer  http.ResponseWriter
-	Request *http.Request
-	Handler http.Handler
+	Writer    http.ResponseWriter
+	Request   *http.Request
+	Handler   http.Handler
+	NewLine   int
+	Timestamp bool
 }
 
 type statusWriter struct {
@@ -22,9 +24,20 @@ type statusWriter struct {
 
 // ToLogger will print the Started and Completed request info to the passed logger
 func (lr LogRequest) ToLogger(logger *log.Logger) {
-	logger.Printf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
+	if lr.Timestamp == true {
+		logger.Printf(`Started %s "%s" %s %s at %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto, time.Now().Format("2006-01-02 15:04:05"))
+	} else {
+		logger.Printf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
+	}
+
 	sw, completedDuration := lr.parseRequest()
 	logger.Printf("Completed %d in %s", sw.statusCode, completedDuration)
+
+	if lr.NewLine > 0 {
+		for i := 1; i <= lr.NewLine; i++ {
+			logger.Println("\t")
+		}
+	}
 }
 
 // ToString will return a map with the key 'started' and 'completed' that contain
@@ -32,7 +45,13 @@ func (lr LogRequest) ToLogger(logger *log.Logger) {
 func (lr LogRequest) ToString() map[string]string {
 	sw, completedDuration := lr.parseRequest()
 	ts := make(map[string]string)
-	ts["started"] = fmt.Sprintf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
+
+	if lr.Timestamp == true {
+		ts["started"] = fmt.Sprintf(`Started %s "%s" %s %s at %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto, time.Now().Format("2006-01-02 15:04:05"))
+	} else {
+		ts["started"] = fmt.Sprintf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
+	}
+
 	ts["completed"] = fmt.Sprintf("Completed %d in %s", sw.statusCode, completedDuration)
 
 	return ts

@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestToLogger(t *testing.T) {
@@ -53,6 +54,38 @@ func TestToLogger(t *testing.T) {
 		if strings.Contains(str.String(), table.expectedCompletedResults) == false {
 			t.Errorf("Expected output was incorrect, %s does not contain %s", str.String(), table.expectedCompletedResults)
 		}
+	}
+}
+
+func TestToLoggerWithOptionals(t *testing.T) {
+	var str bytes.Buffer
+	var logger = log.Logger{}
+	logger.SetOutput(&str)
+
+	app := &application{
+		infoLog: &logger,
+	}
+	req, err := http.NewRequest(http.MethodGet, "/foo", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testHandler := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	})
+
+	rr := httptest.NewRecorder()
+	handler := app.logRequestToLoggerWithOptionals(testHandler)
+	handler.ServeHTTP(rr, req)
+
+	expectedStartedResults := fmt.Sprintf(`at %s`, time.Now().Format("2006-01-02 15:04:05"))
+	if strings.Contains(str.String(), expectedStartedResults) == false {
+		t.Errorf("Expected output was incorrect, %s does not contain %s", str.String(), expectedStartedResults)
+	}
+
+	expectedCompletedResults := fmt.Sprintln("\t")
+	if strings.Contains(str.String(), expectedCompletedResults) == false {
+		t.Errorf("Expected output was incorrect, %s does not contain new line", str.String())
 	}
 }
 
@@ -102,6 +135,33 @@ func TestToString(t *testing.T) {
 	}
 }
 
+func TestToStringWithOptionals(t *testing.T) {
+	var str bytes.Buffer
+	var logger = log.Logger{}
+	logger.SetOutput(&str)
+
+	app := &application{
+		infoLog: &logger,
+	}
+	req, err := http.NewRequest(http.MethodGet, "/foo", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	testHandler := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		rw.WriteHeader(http.StatusOK)
+	})
+
+	rr := httptest.NewRecorder()
+	handler := app.logRequestToStringWithOptionals(testHandler)
+	handler.ServeHTTP(rr, req)
+
+	expectedStartedResults := fmt.Sprintf(`at %s`, time.Now().Format("2006-01-02 15:04:05"))
+	if strings.Contains(str.String(), expectedStartedResults) == false {
+		t.Errorf("Expected output was incorrect, %s does not contain %s", str.String(), expectedStartedResults)
+	}
+}
+
 // Helpers
 
 type application struct {
@@ -118,6 +178,21 @@ func (app *application) logRequestToLogger(next http.Handler) http.Handler {
 func (app *application) logRequestToString(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		lr := LogRequest{Request: r, Writer: w, Handler: next}
+		app.infoLog.Println(lr.ToString()["started"])
+		app.infoLog.Println(lr.ToString()["completed"])
+	})
+}
+
+func (app *application) logRequestToLoggerWithOptionals(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lr := LogRequest{Request: r, Writer: w, Handler: next, NewLine: 1, Timestamp: true}
+		lr.ToLogger(app.infoLog)
+	})
+}
+
+func (app *application) logRequestToStringWithOptionals(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		lr := LogRequest{Request: r, Writer: w, Handler: next, Timestamp: true}
 		app.infoLog.Println(lr.ToString()["started"])
 		app.infoLog.Println(lr.ToString()["completed"])
 	})
