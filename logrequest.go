@@ -25,7 +25,7 @@ type statusWriter struct {
 
 // ToLogger will print the Started and Completed request info to the passed logger
 func (lr LogRequest) ToLogger(logger *log.Logger) {
-	if lr.Timestamp == true {
+	if lr.Timestamp {
 		logger.Printf(`Started %s "%s" %s %s at %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto, time.Now().Format("2006-01-02 15:04:05"))
 	} else {
 		logger.Printf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
@@ -52,7 +52,7 @@ func (lr LogRequest) ToString() map[string]string {
 	sw, completedDuration := lr.parseRequest()
 	ts := make(map[string]string)
 
-	if lr.Timestamp == true {
+	if lr.Timestamp {
 		ts["started"] = fmt.Sprintf(`Started %s "%s" %s %s at %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto, time.Now().Format("2006-01-02 15:04:05"))
 	} else {
 		ts["started"] = fmt.Sprintf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
@@ -74,7 +74,7 @@ func (lr LogRequest) parseRequest() (statusWriter, time.Duration) {
 	startTime := time.Now()
 	sw := statusWriter{ResponseWriter: lr.Writer}
 	lr.Handler.ServeHTTP(&sw, lr.Request)
-	return sw, time.Now().Sub(startTime)
+	return sw, time.Since(startTime)
 }
 
 func (w *statusWriter) WriteHeader(statusCode int) {
