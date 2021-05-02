@@ -10,11 +10,12 @@ import (
 // LogRequest struct
 // Pass values from middleware to this struct
 type LogRequest struct {
-	Writer    http.ResponseWriter
-	Request   *http.Request
-	Handler   http.Handler
-	NewLine   int
-	Timestamp bool
+	Writer       http.ResponseWriter
+	Request      *http.Request
+	Handler      http.Handler
+	NewLine      int
+	Timestamp    bool
+	HideDuration bool
 }
 
 type statusWriter struct {
@@ -30,8 +31,13 @@ func (lr LogRequest) ToLogger(logger *log.Logger) {
 		logger.Printf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
 	}
 
-	sw, completedDuration := lr.parseRequest()
-	logger.Printf("Completed %d in %s", sw.statusCode, completedDuration)
+	if lr.HideDuration {
+		sw, _ := lr.parseRequest()
+		logger.Printf("Completed %d", sw.statusCode)
+	} else {
+		sw, completedDuration := lr.parseRequest()
+		logger.Printf("Completed %d in %s", sw.statusCode, completedDuration)
+	}
 
 	if lr.NewLine > 0 {
 		for i := 1; i <= lr.NewLine; i++ {
@@ -52,7 +58,11 @@ func (lr LogRequest) ToString() map[string]string {
 		ts["started"] = fmt.Sprintf(`Started %s "%s" %s %s`, lr.Request.Method, lr.Request.URL.RequestURI(), lr.Request.RemoteAddr, lr.Request.Proto)
 	}
 
-	ts["completed"] = fmt.Sprintf("Completed %d in %s", sw.statusCode, completedDuration)
+	if lr.HideDuration {
+		ts["completed"] = fmt.Sprintf("Completed %d", sw.statusCode)
+	} else {
+		ts["completed"] = fmt.Sprintf("Completed %d in %s", sw.statusCode, completedDuration)
+	}
 
 	return ts
 }

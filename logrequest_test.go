@@ -87,6 +87,11 @@ func TestToLoggerWithOptionals(t *testing.T) {
 	if strings.Contains(str.String(), expectedCompletedResults) == false {
 		t.Errorf("Expected output was incorrect, %s does not contain new line", str.String())
 	}
+
+	notExpectedDurationResults := fmt.Sprintf(`Completed %d in`, http.StatusOK)
+	if strings.Contains(str.String(), notExpectedDurationResults) == true {
+		t.Errorf("Expected output was incorrect, %s should not contain %s", str.String(), notExpectedDurationResults)
+	}
 }
 
 func TestToString(t *testing.T) {
@@ -160,6 +165,11 @@ func TestToStringWithOptionals(t *testing.T) {
 	if strings.Contains(str.String(), expectedStartedResults) == false {
 		t.Errorf("Expected output was incorrect, %s does not contain %s", str.String(), expectedStartedResults)
 	}
+
+	notExpectedDurationResults := fmt.Sprintf(`Completed %d in`, http.StatusOK)
+	if strings.Contains(str.String(), notExpectedDurationResults) == true {
+		t.Errorf("Expected output was incorrect, %s should not contain %s", str.String(), notExpectedDurationResults)
+	}
 }
 
 // Helpers
@@ -185,14 +195,14 @@ func (app *application) logRequestToString(next http.Handler) http.Handler {
 
 func (app *application) logRequestToLoggerWithOptionals(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		lr := LogRequest{Request: r, Writer: w, Handler: next, NewLine: 1, Timestamp: true}
+		lr := LogRequest{Request: r, Writer: w, Handler: next, NewLine: 1, Timestamp: true, HideDuration: true}
 		lr.ToLogger(app.infoLog)
 	})
 }
 
 func (app *application) logRequestToStringWithOptionals(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		lr := LogRequest{Request: r, Writer: w, Handler: next, Timestamp: true}
+		lr := LogRequest{Request: r, Writer: w, Handler: next, Timestamp: true, HideDuration: true}
 		app.infoLog.Println(lr.ToString()["started"])
 		app.infoLog.Println(lr.ToString()["completed"])
 	})
