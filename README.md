@@ -1,18 +1,34 @@
-[![go.dev Reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/aaronvb/logrequest) [![CircleCI](https://img.shields.io/circleci/build/github/aaronvb/logrequest)](https://circleci.com/gh/aaronvb/logrequest)
+# logrequest
+[![go.dev Reference](https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white&style=flat)](https://pkg.go.dev/github.com/aaronvb/logrequest) [![Workflow](https://img.shields.io/github/workflow/status/aaronvb/logrequest/Go?label=build%2Ftests&style=flat)](https://github.com/aaronvb/logrequest/actions/workflows/go.yml)
 
-# aaronvb/logrequest
-Package `aaronvb/logrequest` is a Go middleware log output inspired by the Ruby on Rails log output for requests. Example output:
+This is a Go middleware log output inspired by the Ruby on Rails log output for requests. Example output:
 
 ```sh
 Started GET "/" 127.0.0.1:12345 HTTP/1.1
 Completed 200 in 3.7455ms
 ```
 
-The output can directly sent to `log.Logger` or to a map[string]string with the key `started` and `completed`.
-
 ## Install
 ```sh
 go get -u github.com/aaronvb/logrequest
+```
+
+## Using logrequest
+The three ways you can have logrequest return request data:
+
+- Directly sent to `log.Logger` using the `ToLogger(logger *log.Logger)` method.
+- Return a `map[string]string` with the key `started` and `completed` using the `ToString()` method. 
+- Return a `RequestFields` struct that contains the fields in the request. (See below)
+```go
+type RequestFields struct {
+	Method        string
+	Url           string
+	RemoteAddress string
+	Protocol      string
+	Time          time.Time
+	Duration      time.Duration
+	StatusCode    int
+}
 ```
 
 ## Options
