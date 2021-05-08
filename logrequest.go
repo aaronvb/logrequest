@@ -23,6 +23,16 @@ type statusWriter struct {
 	statusCode int
 }
 
+type RequestFields struct {
+	Method        string
+	Url           string
+	RemoteAddress string
+	Protocol      string
+	Time          time.Time
+	Duration      time.Duration
+	StatusCode    int
+}
+
 // ToLogger will print the Started and Completed request info to the passed logger
 func (lr LogRequest) ToLogger(logger *log.Logger) {
 	if lr.Timestamp {
@@ -65,6 +75,23 @@ func (lr LogRequest) ToString() map[string]string {
 	}
 
 	return ts
+}
+
+// ToFields returns a RequestFields struct which contains each field that is
+// used in the request.
+func (lr LogRequest) ToFields() RequestFields {
+	sw, completedDuration := lr.parseRequest()
+
+	rf := RequestFields{}
+	rf.Method = lr.Request.Method
+	rf.Url = lr.Request.URL.RequestURI()
+	rf.RemoteAddress = lr.Request.RemoteAddr
+	rf.Protocol = lr.Request.Proto
+	rf.Time = time.Now()
+	rf.Duration = completedDuration
+	rf.StatusCode = sw.statusCode
+
+	return rf
 }
 
 // parseRequest will time the request and retrieve the status from the
