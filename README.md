@@ -16,9 +16,9 @@ go get -u github.com/aaronvb/logrequest
 ## Using logrequest
 The three ways you can have logrequest return request data:
 
-- Directly sent to `log.Logger` using the `ToLogger(logger *log.Logger)` method.
-- Return a `map[string]string` with the key `started` and `completed` using the `ToString()` method. 
-- Return a `RequestFields` struct that contains the fields in the request. (See below)
+- `ToLogger(logger *log.Logger)` directly sends to a `log.Logger`.
+- `ToString()` returns a `map[string]string` with the key `started` and `completed`.
+- `ToFields()` returns a `RequestFields` struct that contains the fields in the request. (See below)
 ```go
 type RequestFields struct {
 	Method        string
